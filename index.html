@@ -1095,7 +1095,8 @@ async function loadIssues(filter='all') {
   let q=db.from('issues').select('*,profiles(full_name,flat_number)').order('created_at',{ascending:false});
   if(filter==='mine') q=q.eq('reporter_id',currentUser.id);
   else if(filter!=='all') q=q.eq('status',filter);
-  const {data}=await q;
+  const {data, error}=await q;
+  if(error) { console.error('Issues error:', error); }
   let html = '';
   if(filter==='mine' && data?.length) {
     html += '<div class="my-issue-banner">📋 Showing your submitted issues only</div>';
@@ -1170,7 +1171,8 @@ async function quickResolve(id) {
 async function loadDocs() {
   const isDir=currentProfile?.role==='director'||currentProfile?.role==='admin';
   const isShoOwner=currentProfile?.tenure==='owner'||currentProfile?.tenure==='shared';
-  const {data}=await db.from('documents').select('*').order('category').order('name');
+  const {data, error}=await db.from('documents').select('*').order('category').order('name');
+  if(error) console.error('Docs error:', error);
   if(!data?.length){document.getElementById('docsList').innerHTML='<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-text">No documents uploaded yet</div></div>';return;}
   const cats={legal:'Lease & Legal',safety:'Building & Safety',finance:'Finances',meetings:'Meeting Minutes',other:'Other'};
   const grouped={};
@@ -1668,35 +1670,8 @@ document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click
 const ONESIGNAL_APP_ID = '3297c8ea-83cc-4c10-b4bb-2d46f2dba2d4';
 
 async function initOneSignal() {
-  try {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    // Dynamically load to avoid blocking app if it fails
-    const script = document.createElement('script');
-    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-    script.async = true;
-    script.onerror = () => console.warn('OneSignal failed to load');
-    document.head.appendChild(script);
-    await new Promise(r => script.onload = r);
-    window.OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      safari_web_id: '',
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-    });
-    const permission = await OneSignal.Notifications.permission;
-    if(!permission) {
-      document.getElementById('pushPrompt').style.display = 'block';
-    }
-    // Tag user so we can send targeted notifications
-    if(currentProfile) {
-      OneSignal.User.addTag('flat', String(currentProfile.flat_number));
-      OneSignal.User.addTag('building', currentProfile.building);
-      OneSignal.User.addTag('tenure', currentProfile.tenure);
-      OneSignal.User.addTag('role', currentProfile.role);
-    }
-    });
-  } catch(e) { console.warn('OneSignal init failed', e); }
+  // Push notifications disabled — re-enable when Vercel service worker is configured
+  return;
 }
 
 async function enablePush() {
