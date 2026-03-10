@@ -1027,12 +1027,12 @@ async function loadApp(user) {
 function navTo(page) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
-  const pages=['home','notices','issues','docs','profile'];
+  const pages=['home','notices','issues','info','profile'];
   document.querySelectorAll('.nav-item').forEach((item,i)=>item.classList.toggle('active',pages[i]===page));
   document.querySelector('.main-content').scrollTop=0;
   if(page==='notices')loadNotices();
   if(page==='issues')loadIssues();
-  if(page==='docs')loadDocs();
+  if(page==='docs'){loadDocs();}
   if(page==='polls')loadPolls();
   if(page==='polls-full')loadPollsFull();
   if(page==='residents')loadResidents();
